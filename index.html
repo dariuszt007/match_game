@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Occupation Memory Match Game</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN",
+                "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f0fdf4;
+            color: #1e293b;
+            user-select: none;
+            -webkit-user-select: none;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #059669;
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+
+        .sub-title {
+            color: #475569;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .controls-container {
+            background-color: #ffffff;
+            border: 2px solid #a7f3d0;
+            border-radius: 1rem;
+            padding: 10px 14px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+            margin: 0 auto 10px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .control-label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #64748b;
+        }
+
+        .btn-option {
+            background-color: #e2e8f0;
+            color: #334155;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 0.75rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-option.active {
+            background-color: #10b981;
+            color: #ffffff;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-reset {
+            background-color: #f59e0b;
+            color: #ffffff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 0.75rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: auto;
+            transition: transform 0.1s ease;
+        }
+
+        .btn-reset:active {
+            transform: scale(0.95);
+        }
+
+        .player-names-control {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .player-name-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .player-name-field {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .player-name-input {
+            width: 130px;
+            max-width: 40vw;
+            padding: 6px 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font: inherit;
+            font-size: 0.85rem;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        .status-container {
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 1rem;
+            padding: 8px 16px;
+            max-width: 900px;
+            margin: 0 auto 10px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .score-box {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            padding: 4px 16px;
+            border-radius: 0.75rem;
+            text-align: center;
+            min-width: 90px;
+        }
+
+        .score-val {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #059669;
+        }
+
+        .turn-badge {
+            background-color: #3b82f6;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .player-scoreboard {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .player-score-box {
+            min-width: 70px;
+            padding: 4px 10px;
+        }
+
+        #multi-status:not(.hidden) {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .board-container {
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            display: grid;
+            gap: 8px;
+            flex-grow: 1;
+        }
+
+        .grid-6,
+        .grid-8,
+        .grid-12,
+        .grid-16 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .grid-20 {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        @media (min-width: 640px) {
+            .grid-12 {
+                grid-template-columns: repeat(6, 1fr);
+            }
+
+            .grid-16,
+            .grid-20 {
+                grid-template-columns: repeat(8, 1fr);
+            }
+        }
+
+        .card {
+            perspective: 1000px;
+            height: 95px;
+            cursor: pointer;
+        }
+
+        @media (min-width: 640px) {
+            .card {
+                height: 110px;
+            }
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front,
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: 3px solid #ffffff;
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .card-front {
+            background-color: #ffffff;
+            border: 3px solid #34d399;
+            transform: rotateY(180deg);
+            padding: 4px;
+        }
+
+        .card.matched .card-front {
+            background-color: #fef3c7;
+            border-color: #f59e0b;
+            animation: matchPulse 0.5s ease-in-out;
+        }
+
+        @keyframes matchPulse {
+            0%, 100% {
+                transform: rotateY(180deg) scale(1);
+            }
+
+            50% {
+                transform: rotateY(180deg) scale(1.1);
+            }
+        }
+
+        .card-emoji {
+            font-size: 1.8rem;
+            line-height: 1;
+        }
+
+        .card-english {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: capitalize;
+            margin-top: 2px;
+        }
+
+        .card-japanese {
+            font-size: 0.65rem;
+            font-weight: bold;
+            color: #059669;
+        }
+
+        @media (min-width: 640px) {
+            .card-emoji {
+                font-size: 2.2rem;
+            }
+
+            .card-english {
+                font-size: 0.85rem;
+            }
+
+            .card-japanese {
+                font-size: 0.75rem;
+            }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 16px;
+        }
+
+        .modal-body {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            border: 4px solid #10b981;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-btn {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 1rem;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        #result-message {
+            white-space: pre-line;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>✨ Occupations Memory Match ✨</h1>
+        <p class="sub-title">えいごの「しょくぎょう」をおぼえよう！（小学校6年生 外国語）</p>
+    </header>
+
+    <div class="controls-container">
+        <div class="control-group">
+            <span class="control-label">モード:</span>
+            <button id="mode-single" class="btn-option active" onclick="setMode('single')">👤 1人</button>
+            <button id="mode-multi" class="btn-option" onclick="setMode('multi')">👥 対戦</button>
+        </div>
+
+        <div id="player-count-control" class="control-group" style="display: none;">
+            <label class="control-label" for="player-count">人数:</label>
+            <input
+                id="player-count"
+                type="number"
+                min="2"
+                max="20"
+                value="3"
+                onchange="setPlayerCount(this.value)"
+                style="width: 58px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 8px;"
+            >
+            <span class="control-label">人</span>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">枚数:</span>
+            <button id="p-6" class="btn-option" onclick="setPairs(6)">6ペア</button>
+            <button id="p-8" class="btn-option active" onclick="setPairs(8)">8ペア</button>
+            <button id="p-12" class="btn-option" onclick="setPairs(12)">12ペア</button>
+            <button id="p-16" class="btn-option" onclick="setPairs(16)">16ペア</button>
+            <button id="p-20" class="btn-option" onclick="setPairs(20)">20ペア</button>
+        </div>
+
+        <button class="btn-reset" onclick="initGame()">🔄 しょきか</button>
+
+        <div id="player-names-control" class="player-names-control hidden">
+            <span class="control-label">プレイヤーのニックネーム:</span>
+            <div id="player-name-list" class="player-name-list"></div>
+        </div>
+    </div>
+
+    <div class="status-container">
+        <div id="single-status" style="display: flex; gap: 20px;">
+            <div class="score-box">
+                <div style="font-size: 0.65rem; color: #64748b; font-weight: bold;">めくった回数</div>
+                <div id="flip-count" class="score-val">0</div>
+            </div>
+
+            <div class="score-box">
+                <div style="font-size: 0.65rem; color: #64748b; font-weight: bold;">ペア</div>
+                <div class="score-val">
+                    <span id="matched-count">0</span> /
+                    <span id="total-pairs-disp">8</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="multi-status" class="hidden" style="width: 100%;">
+            <span id="turn-badge" class="turn-badge">P1 のターン</span>
+            <div id="player-scoreboard" class="player-scoreboard"></div>
+        </div>
+    </div>
+
+    <div id="game-board" class="board-container grid-8"></div>
+
+    <footer style="text-align: center; margin-top: 10px; font-size: 0.7rem; color: #94a3b8; font-weight: bold;">
+        ※外部通信を行わない学校端末（GIGAスクール・オフライン環境）対応仕様
+    </footer>
+
+    <div id="result-modal" class="modal-overlay hidden">
+        <div class="modal-body">
+            <div style="font-size: 3rem;">🎉</div>
+            <h2 style="color: #0f172a; margin-top: 4px;">クリア！</h2>
+            <p id="result-message" style="margin-top: 8px; color: #475569; font-size: 0.9rem; font-weight: bold;"></p>
+            <button class="modal-btn" onclick="closeModal(); initGame();">もう一度あそぶ 🚀</button>
+        </div>
+    </div>
+
+    <script>
+        const occupationsData = [
+            { id: 'doctor', english: 'doctor', japanese: 'いしゃ', emoji: '🧑‍⚕️' },
+            { id: 'nurse', english: 'nurse', japanese: 'かんごし', emoji: '👩‍⚕️' },
+            { id: 'teacher', english: 'teacher', japanese: 'せんせい', emoji: '🧑‍🏫' },
+            { id: 'firefighter', english: 'firefighter', japanese: 'しょうぼうし', emoji: '🧑‍🚒' },
+            { id: 'police_officer', english: 'police officer', japanese: 'けいさつかん', emoji: '👮' },
+            { id: 'chef', english: 'chef', japanese: 'シェフ', emoji: '🧑‍🍳' },
+            { id: 'pilot', english: 'pilot', japanese: 'パイロット', emoji: '🧑‍✈️' },
+            { id: 'baseball_player', english: 'baseball player', japanese: 'やきゅうせんしゅ', emoji: '⚾' },
+            { id: 'soccer_player', english: 'soccer player', japanese: 'サッカーせんしゅ', emoji: '⚽' },
+            { id: 'baker', english: 'baker', japanese: 'パンやさん', emoji: '🥐' },
+            { id: 'astronaut', english: 'astronaut', japanese: 'うちゅうひこうし', emoji: '🧑‍🚀' },
+            { id: 'artist', english: 'artist', japanese: 'がか・アーティスト', emoji: '🎨' },
+            { id: 'singer', english: 'singer', japanese: 'かしゅ', emoji: '🎤' },
+            { id: 'vet', english: 'vet', japanese: 'じゅういさん', emoji: '🐶' },
+            { id: 'scientist', english: 'scientist', japanese: 'かがくしゃ', emoji: '🔬' },
+            { id: 'farmer', english: 'farmer', japanese: 'のうか', emoji: '👨‍🌾' },
+            { id: 'dentist', english: 'dentist', japanese: 'はいしゃさん', emoji: '🦷' },
+            { id: 'comedian', english: 'comedian', japanese: 'お笑い芸人', emoji: '🤡' },
+            { id: 'game_creator', english: 'game creator', japanese: 'ゲームクリエイター', emoji: '🎮' },
+            { id: 'youtuber', english: 'YouTuber', japanese: 'ユーチューバー', emoji: '📹' }
+        ];
+
+        let currentMode = 'single';
+        let totalPairs = 8;
+        let cards = [];
+        let flippedCards = [];
+        let isLockBoard = false;
+        let flipCount = 0;
+        let matchedPairsCount = 0;
+        let playerCount = 3;
+        let currentPlayer = 0;
+        let scores = [];
+        let playerNames = Array(20).fill('');
+
+        function getPlayerName(index) {
+            return playerNames[index]?.trim() || `P${index + 1}`;
+        }
+
+        function speakWord(text) {
+            if (!('speechSynthesis' in window)) return;
+
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+
+            document.getElementById('mode-single').className =
+                mode === 'single' ? 'btn-option active' : 'btn-option';
+            document.getElementById('mode-multi').className =
+                mode === 'multi' ? 'btn-option active' : 'btn-option';
+
+            document.getElementById('single-status').style.display =
+                mode === 'single' ? 'flex' : 'none';
+            document.getElementById('multi-status').className =
+                mode === 'multi' ? '' : 'hidden';
+            document.getElementById('player-count-control').style.display =
+                mode === 'multi' ? 'flex' : 'none';
+            document.getElementById('player-names-control').className =
+                mode === 'multi' ? 'player-names-control' : 'player-names-control hidden';
+
+            renderPlayerNameInputs();
+            initGame();
+        }
+
+        function setPlayerCount(value) {
+            const input = document.getElementById('player-count');
+            playerCount = Math.max(2, Math.min(20, parseInt(value, 10) || 3));
+            input.value = playerCount;
+
+            renderPlayerNameInputs();
+            initGame();
+        }
+
+        function renderPlayerNameInputs() {
+            const list = document.getElementById('player-name-list');
+            list.innerHTML = '';
+
+            for (let i = 0; i < playerCount; i++) {
+                const field = document.createElement('label');
+                field.className = 'player-name-field';
+
+                const label = document.createElement('span');
+                label.className = 'control-label';
+                label.textContent = `P${i + 1}:`;
+
+                const input = document.createElement('input');
+                input.className = 'player-name-input';
+                input.type = 'text';
+                input.maxLength = 20;
+                input.placeholder = `Pseudonim ${i + 1}`;
+                input.value = playerNames[i] || '';
+                input.setAttribute('aria-label', `Pseudonim gracza ${i + 1}`);
+
+                input.addEventListener('input', () => {
+                    playerNames[i] = input.value;
+                    updateTurnUI();
+                });
+
+                field.append(label, input);
+                list.appendChild(field);
+            }
+        }
+
+        function setPairs(num) {
+            totalPairs = num;
+
+            [6, 8, 12, 16, 20].forEach(n => {
+                const btn = document.getElementById(`p-${n}`);
+                if (btn) {
+                    btn.className = n === num ? 'btn-option active' : 'btn-option';
+                }
+            });
+
+            document.getElementById('total-pairs-disp').innerText = num;
+            initGame();
+        }
+
+        function shuffle(array) {
+            let currentIndex = array.length;
+
+            while (currentIndex !== 0) {
+                const randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+
+                [array[currentIndex], array[randomIndex]] =
+                    [array[randomIndex], array[currentIndex]];
+            }
+
+            return array;
+        }
+
+        function initGame() {
+            const board = document.getElementById('game-board');
+
+            board.innerHTML = '';
+            board.className = `board-container grid-${totalPairs}`;
+
+            flippedCards = [];
+            isLockBoard = false;
+            flipCount = 0;
+            matchedPairsCount = 0;
+            currentPlayer = 0;
+            scores = Array(playerCount).fill(0);
+
+            document.getElementById('flip-count').innerText = '0';
+            document.getElementById('matched-count').innerText = '0';
+
+            updateTurnUI();
+
+            const selectedVocab = occupationsData.slice(0, totalPairs);
+            const deck = [];
+
+            selectedVocab.forEach(item => {
+                deck.push({ ...item, instanceId: `${item.id}-1` });
+                deck.push({ ...item, instanceId: `${item.id}-2` });
+            });
+
+            cards = shuffle(deck);
+
+            cards.forEach(cardData => {
+                const cardElem = document.createElement('div');
+                cardElem.className = 'card';
+                cardElem.dataset.id = cardData.id;
+
+                cardElem.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-back">❓</div>
+                        <div class="card-front">
+                            <span class="card-emoji">${cardData.emoji}</span>
+                            <span class="card-english">${cardData.english}</span>
+                            <span class="card-japanese">${cardData.japanese}</span>
+                        </div>
+                    </div>
+                `;
+
+                cardElem.addEventListener('click', () =>
+                    handleCardClick(cardElem, cardData)
+                );
+
+                board.appendChild(cardElem);
+            });
+        }
+
+        function handleCardClick(cardElem, cardData) {
+            if (isLockBoard) return;
+            if (cardElem.classList.contains('flipped')) return;
+            if (cardElem.classList.contains('matched')) return;
+
+            speakWord(cardData.english);
+
+            cardElem.classList.add('flipped');
+            flippedCards.push({ elem: cardElem, data: cardData });
+
+            if (currentMode === 'single' && flippedCards.length === 1) {
+                flipCount++;
+                document.getElementById('flip-count').innerText = flipCount;
+            }
+
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            isLockBoard = true;
+
+            const [card1, card2] = flippedCards;
+            const isMatch = card1.data.id === card2.data.id;
+
+            if (isMatch) {
+                setTimeout(() => {
+                    card1.elem.classList.add('matched');
+                    card2.elem.classList.add('matched');
+
+                    matchedPairsCount++;
+                    document.getElementById('matched-count').innerText =
+                        matchedPairsCount;
+
+                    if (currentMode === 'multi') {
+                        scores[currentPlayer]++;
+                        updateTurnUI();
+                    }
+
+                    resetTurn();
+
+                    if (matchedPairsCount === totalPairs) {
+                        setTimeout(showVictoryModal, 500);
+                    }
+                }, 400);
+            } else {
+                setTimeout(() => {
+                    card1.elem.classList.remove('flipped');
+                    card2.elem.classList.remove('flipped');
+
+                    if (currentMode === 'multi') {
+                        currentPlayer = (currentPlayer + 1) % playerCount;
+                        updateTurnUI();
+                    }
+
+                    resetTurn();
+                }, 1100);
+            }
+        }
+
+        function resetTurn() {
+            flippedCards = [];
+            isLockBoard = false;
+        }
+
+        function updateTurnUI() {
+            const badge = document.getElementById('turn-badge');
+            const scoreboard = document.getElementById('player-scoreboard');
+
+            const colors = [
+                '#3b82f6', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6',
+                '#06b6d4', '#ef4444', '#84cc16', '#f97316', '#6366f1'
+            ];
+
+            badge.textContent = `${getPlayerName(currentPlayer)} のターン`;
+            badge.style.backgroundColor =
+                colors[currentPlayer % colors.length];
+
+            scoreboard.innerHTML = '';
+
+            scores.forEach((score, index) => {
+                const color = colors[index % colors.length];
+                const box = document.createElement('div');
+
+                box.className = 'score-box player-score-box';
+                box.style.borderColor = color;
+
+                if (index === currentPlayer) {
+                    box.style.boxShadow = `0 0 8px ${color}66`;
+                }
+
+                const label = document.createElement('div');
+                label.style.cssText =
+                    `font-size: 0.65rem; color: ${color}; font-weight: bold;`;
+                label.textContent = getPlayerName(index);
+
+                const value = document.createElement('div');
+                value.className = 'score-val';
+                value.style.color = color;
+                value.textContent = score;
+
+                box.append(label, value);
+                scoreboard.appendChild(box);
+            });
+        }
+
+        function showVictoryModal() {
+            const modal = document.getElementById('result-modal');
+            const msg = document.getElementById('result-message');
+
+            if (currentMode === 'single') {
+                msg.textContent =
+                    `すべてのペアを見つけたよ！\n${flipCount} 回 めくってクリア！`;
+            } else {
+                const highestScore = Math.max(...scores);
+                const winners = scores
+                    .map((score, index) =>
+                        score === highestScore ? getPlayerName(index) : null
+                    )
+                    .filter(Boolean);
+
+                if (winners.length === playerCount) {
+                    msg.textContent =
+                        `引き分け！\n${highestScore} ペア`;
+                } else {
+                    msg.textContent =
+                        `🏆 ${winners.join('・')} の勝ち！\n${highestScore} ペア獲得`;
+                }
+            }
+
+            modal.classList.remove('hidden');
+            speakWord('Great Job!');
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').classList.add('hidden');
+        }
+
+        window.onload = function() {
+            renderPlayerNameInputs();
+            initGame();
+        };
+    </script>
+</body>
+</html>
