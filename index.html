@@ -500,16 +500,37 @@
             return playerNames[index]?.trim() || `P${index + 1}`;
         }
 
-        function speakWord(text) {
-            if (!('speechSynthesis' in window)) return;
+        let englishVoice = null;
 
-            window.speechSynthesis.cancel();
+function loadEnglishVoice() {
+const voices = window.speechSynthesis.getVoices();
 
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US';
-            utterance.rate = 0.85;
-            window.speechSynthesis.speak(utterance);
-        }
+englishVoice =
+voices.find(v => v.lang.toLowerCase().replace('_', '-') === 'en-us') ||
+voices.find(v => v.lang.toLowerCase().startsWith('en'));
+}
+
+if ('speechSynthesis' in window) {
+loadEnglishVoice();
+window.speechSynthesis.addEventListener('voiceschanged', loadEnglishVoice);
+}
+
+function speakWord(text) {
+if (!('speechSynthesis' in window)) return;
+
+loadEnglishVoice();
+
+const utterance = new SpeechSynthesisUtterance(text);
+utterance.lang = 'en-US';
+utterance.rate = 0.85;
+
+if (englishVoice) {
+utterance.voice = englishVoice;
+}
+
+window.speechSynthesis.cancel();
+window.speechSynthesis.speak(utterance);
+}
 
         function setMode(mode) {
             currentMode = mode;
